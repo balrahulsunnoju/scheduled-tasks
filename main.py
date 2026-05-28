@@ -23,7 +23,7 @@ today_month = today.month
 
 for index, row in data.iterrows():
 
-    if today_day == row["day"] and today_month == row["month"]:
+    if int(today_day) == int(row["day"]) and int(today_month) == int(row["month"]):
 
         letter_num = random.randint(1, 3)
 
