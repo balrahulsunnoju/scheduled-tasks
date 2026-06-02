@@ -2,7 +2,7 @@ name: Rain Alert Bot
 
 on:
   schedule:
-    - cron: "0 9 * * *"   # 9 AM UTC daily
+    - cron: "0 9 * * *"
   workflow_dispatch:
 
 jobs:
@@ -22,7 +22,6 @@ jobs:
         run: pip install requests twilio
 
       - name: Run script
-        working-directory: Day-35-☔ Automate Your Rain Alert SMS
         env:
           OWM_API_KEY: ${{ secrets.OWM_API_KEY }}
           ACCOUNT_SID: ${{ secrets.ACCOUNT_SID }}
