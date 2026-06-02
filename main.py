@@ -1,43 +1,45 @@
-# To run and test the code you need to update 4 places:
-# 1. Change MY_EMAIL/MY_PASSWORD to your own details.
-# 2. Go to your email provider and make it allow less secure apps.
-# 3. Update the SMTP ADDRESS to match your email provider.
-# 4. Update birthdays.csv to contain today's month and day.
-# See the solution video in the 100 Days of Python Course for explainations.
-
-
-import pandas
-import datetime as dt
-import random
-import smtplib
+import requests
+from twilio.rest import Client
 import os
 
-data = pandas.read_csv("birthdays.csv")
+OWN_ENDPOINT = "https://api.openweathermap.org/data/2.5/forecast"
 
-email = os.environ.get("MY_EMAIL")
-password = os.environ.get("MY_PASSWORD")
+MY_LAT = "33.748997"
+MY_LONG = "-84.387985"
 
-today = dt.datetime.now()
-today_day = today.day
-today_month = today.month
+api_key = os.environ.get("OWM_API_KEY")
+account_sid = os.environ.get("ACCOUNT_SID")
+auth_token = os.environ.get("AUTH_TOKEN")
 
-for index, row in data.iterrows():
+weather_parameters = {
+    "lat": MY_LAT,
+    "lon": MY_LONG,
+    "appid": api_key,
+    "cnt": 4,
+}
 
-    if int(today_day) == int(row["day"]) and int(today_month) == int(row["month"]):
+response = requests.get(OWN_ENDPOINT, params=weather_parameters)
+response.raise_for_status()
 
-        letter_num = random.randint(1, 3)
+weather_data = response.json()
 
-        with open(f"letter_templates/letter_{letter_num}.txt") as file:
-            f1 = file.read()
+will_rain = False   # ✅ FIX
 
-        final_letter = f1.replace("[NAME]", row["name"])
+for hour_data in weather_data["list"]:
+    condition_code = hour_data["weather"][0]["id"]
+    if condition_code < 700:
+        will_rain = True
+        break
 
-        with smtplib.SMTP("smtp.gmail.com", port=587) as connection:
-            connection.starttls()
-            connection.login(user=email, password=password)
+if will_rain:
+    client = Client(account_sid, auth_token)
 
-            connection.sendmail(
-                from_addr=email,
-                to_addrs=row["email"],
-                msg=f"Subject:Birthday Wishes\n\n{final_letter}"
-            )
+    message = client.messages.create(
+        body="Bring an umbrella☔.",
+        from_="whatsapp:+14155238886",
+        to="whatsapp:+19375031529",
+    )
+
+    print(message.status)
+else:
+    print("No rain. No message sent.")
